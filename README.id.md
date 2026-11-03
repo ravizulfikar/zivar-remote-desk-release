@@ -27,11 +27,6 @@
 
 ---
 
-```
-signaling/   Cloudflare Worker + Durable Object: ID 9 digit, relay SDP/ICE, batas percobaan kata sandi, kredensial TURN
-client/      Tauri (Rust + WebView2): mode Host (dikontrol) dan Viewer (mengontrol)
-```
-
 ## Fitur
 
 **Menyambung**
@@ -64,7 +59,7 @@ Installer Windows dan APK Android dibangun oleh GitHub Actions untuk setiap tag 
 - **Windows**: `ZivarRemoteDesk_<versi>_x64-setup.exe`. Installer belum ditandatangani, jadi SmartScreen bisa memberi peringatan saat pertama dijalankan (Informasi lebih lanjut, lalu Tetap jalankan).
 - **Android**: `ZivarRemoteDesk_<versi>_android.apk`. Izinkan pemasangan dari sumber tidak dikenal. Ini build debug untuk uji coba dan tidak bisa menimpa build rilis yang ditandatangani kunci lain.
 
-Alamat server dan kunci akses sudah tertanam di aplikasi, jadi pemasangan baru langsung tersambung: tidak ada yang perlu diatur atau diketik. Kunci itu ada di dalam berkas unduhan, sehingga siapa pun yang memegang berkasnya dapat mengambilnya dan memakai server serta jatah TURN Anda (bukan komputer Anda, yang tetap dilindungi ID dan kata sandinya). Lihat [Menjalankan server sendiri](#menjalankan-server-sendiri-cloudflare-gratis).
+Alamat server dan kunci akses sudah tertanam di aplikasi, jadi pemasangan baru langsung tersambung: tidak ada yang perlu diatur atau diketik.
 
 ### Cara pakai
 
@@ -144,129 +139,6 @@ Catatan:
 - Video berjalan lewat UDP, yang tidak bisa dibawa proxy HTTP. Di balik proxy, sesi harus lewat relay TURN melalui TCP/TLS, dan proxy harus mengizinkan `CONNECT` ke port relay. Cloudflare menyediakan `turns:` di port 443 yang biasanya diizinkan proxy. Bagian ini belum bisa diuji dengan proxy kantor sungguhan.
 - Jika Windows sudah punya proxy untuk seluruh sistem, aplikasi biasanya mengikutinya dan pengaturan ini mungkin tidak diperlukan.
 - Tidak tercakup proxy ini: tautan yang dibuka di browser (Periksa pembaruan, zivar.my.id); browser memakai pengaturannya sendiri.
-
-## Versi web pribadi
-
-Halaman web untuk mengontrol komputer Anda dari browser mana pun, khusus untuk Anda. Masuknya lewat email: **Cloudflare Access** mengirim kode sekali pakai ke alamat yang Anda daftarkan, dan tidak ada orang lain yang bahkan bisa memuat halamannya. Halaman dilayani oleh Worker tersendiri (`web/`, nama `zivar-web`) yang menjadi satu-satunya jalan browser ke server signaling. App key tidak pernah sampai ke browser.
-
-```
-browser --(Access: kode email)--> zivar-web --(service binding + WEB_KEY)--> zivar-signaling
-```
-
-Yang bisa dilakukan: menyambung ke komputer dengan ID dan kata sandi (layar atau hanya terminal), juga di ponsel. Yang tidak ada: menjadi komputer yang dikontrol, mengingat kata sandi (di browser tidak ada perlindungan untuknya), menyambung lewat alamat IP lokal (halaman https tidak bisa membuka `ws://`), dan memeriksa pembaruan.
-
-Penyiapan sekali saja:
-
-1. **Rahasia bersama** antara kedua Worker (nilainya sama di keduanya). Di PowerShell:
-
-   ```powershell
-   $key = node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   cd signaling; $key | npx wrangler secret put WEB_KEY
-   cd ../web;    $key | npx wrangler secret put WEB_KEY
-   ```
-
-2. **Cloudflare Access** (di dashboard, gratis sampai 50 pengguna):
-   - *Zero Trust*: pilih nama tim dan paket Free pada pemakaian pertama. Di *Settings, Authentication* pastikan **One-time PIN** aktif.
-   - *Workers & Pages, zivar-web, Settings, Domains & Routes*: pada baris `workers.dev` pilih **Enable Cloudflare Access**, lalu **Manage Cloudflare Access**. Pada kebijakannya, izinkan hanya alamat email Anda (Include, Emails) dan hapus aturan yang mengizinkan semua orang di akun atau domain Anda.
-   - Salin **Audience (AUD) tag** aplikasi tersebut (*Zero Trust, Access, Applications, zivar-web*) dan **team domain** Anda (`https://<team>.cloudflareaccess.com`, di *Zero Trust, Settings*).
-
-3. Isi keduanya di `web/wrangler.jsonc` pada `vars`, lalu deploy:
-
-   ```jsonc
-   "vars": {
-     "TEAM_DOMAIN": "https://<team>.cloudflareaccess.com",
-     "POLICY_AUD": "<audience tag>",
-     "ALLOWED_EMAILS": "anda@contoh.com"
-   }
-   ```
-
-   ```powershell
-   cd web; npm install; npm run deploy
-   ```
-
-4. Buka `https://zivar-web.<akun-anda>.workers.dev`, masukkan email, ketik kode yang diterima, lalu sambungkan.
-
-Sebelum langkah 3 selesai, Worker menjawab 503 untuk semuanya, jadi tidak ada yang terbuka tanpa sengaja. Worker juga memeriksa token Access sendiri (tanda tangan, audience, masa berlaku, dan email di `ALLOWED_EMAILS`), sehingga walau Access tidak sengaja dimatikan, tidak ada yang bisa masuk. Jika Anda ditolak padahal sudah masuk, jalankan `npx wrangler tail` di `web/`: alasannya dicatat (`access denied: ...`).
-
-## Pembaruan
-
-Menu **Tentang** punya tombol **Periksa pembaruan**, dan aplikasi juga memeriksa diam-diam saat dibuka (paling sering tiap 12 jam). Versi baru ditandai titik di tab Tentang; tombol unduh membuka berkas rilis di browser. Aplikasi belum memasang pembaruan sendiri (lihat roadmap).
-
-Aplikasi membaca rilis terbaru dari repo rilis publik langsung di GitHub, lengkap dengan catatan rilis dari `CHANGELOG.id.md`; tombol unduh membuka installer atau APK secara langsung. Tidak ada lagi yang perlu diterbitkan manual. Aplikasi sampai 0.10.x masih membaca manifest dari Worker; agar mereka melihat versi baru, terbitkan sekali:
-
-```powershell
-node scripts/publish-update.mjs 0.12.0 "Catatan rilis singkat"
-```
-
-## Menjalankan server sendiri (Cloudflare, gratis)
-
-```powershell
-cd signaling
-npx wrangler login
-npx wrangler kv namespace create META            # isi id yang dihasilkan ke wrangler.jsonc
-npx wrangler deploy                              # menghasilkan https://zivar-signaling.<akun>.workers.dev
-```
-
-TURN (opsional tapi disarankan untuk jaringan kantor): buat TURN key di dashboard Cloudflare (Realtime, lalu TURN), kemudian:
-
-```powershell
-npx wrangler secret put TURN_KEY_ID
-npx wrangler secret put TURN_KEY_API_TOKEN
-npx wrangler secret put APP_KEY                  # opsional: mencegah orang lain memakai Worker Anda
-```
-
-Cek relay: buka `<alamat-worker>/health`. `{"ok":true,"turn":"ok"}` berarti TURN aktif (`missing` = secret belum dipasang, `invalid:401` = kunci salah).
-
-Alamat server dan kunci ditanam saat build oleh `scripts/write-defaults.mjs`: alamat dari `ZIVAR_SERVER` (default ke Worker proyek ini) dan kunci dari GitHub secret `APP_KEY`. Keduanya tidak ditampilkan di aplikasi. Untuk mengganti kunci: pasang nilai baru di Worker (`npx wrangler secret put APP_KEY`) dan di GitHub (`gh secret set APP_KEY`), lalu rilis versi baru. Build yang lebih lama berhenti tersambung, dan aplikasi memberi tahu pengguna agar memasang versi terbaru.
-
-> Kunci di dalam aplikasi yang dibagikan bisa diambil oleh siapa pun yang memegang berkasnya, dan unduhannya publik. Dengan kunci itu orang bisa memakai Worker dan jatah TURN Anda (Cloudflare Realtime TURN gratis sampai jumlah bulanan yang besar); pantau pemakaian di dashboard Cloudflare dan ganti kunci bila ada penyalahgunaan. Komputernya sendiri dilindungi ID dan kata sandinya, bukan kunci ini.
-
-## Keamanan
-
-- Kata sandi tidak pernah dikirim (tantangan HMAC, lihat di atas).
-- ID diklaim dengan token rahasia; perangkat lain tidak bisa merebut ID yang sama.
-- Lima kata sandi salah mengunci ID itu selama 15 menit untuk IP pengirim.
-- Data channel input baru dibuka setelah autentikasi berhasil.
-- Kata sandi tersimpan dienkripsi dengan DPAPI Windows.
-
-## Batasan saat ini
-
-- Host hanya Windows. Viewer jalan di Windows dan Android.
-- Layar login, layar kunci, dan dialog UAC belum bisa dikontrol (butuh Windows Service).
-- Auto-start berjalan setelah Anda login ke Windows, bukan saat boot. Installer belum ditandatangani.
-- Layar login setelah restart, sebelum ada yang login, tidak bisa dikontrol: aplikasinya belum berjalan. Komputer yang terkunci bisa, bila layanan terpasang (lihat di atas).
-- Android menyimpan kata sandi hanya di penyimpanan privat aplikasi (belum Keystore) dan APK-nya build debug.
-- Hitungan percobaan kata sandi ada di memori Durable Object dan reset bila DO di-restart.
-- Proxy belum mendukung username/kata sandi dan belum diuji dengan proxy kantor dan relay sungguhan.
-
-Gagasan lanjutan, berurutan, ada di [docs/ROADMAP.md](docs/ROADMAP.md).
-
-## Pengembangan
-
-```powershell
-# terminal 1: server signaling
-cd signaling; npm install; npm run dev          # http://127.0.0.1:8787
-npm test                                         # tes e2e signaling (server harus jalan)
-
-# terminal 2: aplikasi
-cd client; npm install; npm run tauri dev
-npm test                                         # tes unit (quality, history, update)
-```
-
-Rilis: dorong tag `vX.Y.Z`; `.github/workflows/release.yml` membangun installer Windows dan APK Android lalu menerbitkannya. Dengan GitHub secret `RELEASES_TOKEN` (token fine-grained dengan izin *Contents: read and write* pada repo rilis publik) berkasnya diterbitkan di sana; tanpa itu berkasnya tetap di repo private. Repo publik perlu satu commit (misalnya README) sebelum rilis pertama.
-
-## Struktur proyek
-
-```
-client/src/            UI dan logika (main.js, history.js, quality.js, update.js), xterm.js di vendor/
-web/                   Viewer web pribadi: Worker yang melayani halaman dan meneruskan ke server signaling (di belakang Cloudflare Access)
-client/src-tauri/      Rust: config, injeksi input, tray, proxy, relay jaringan lokal (lan.rs), terminal (term.rs), layanan dan helper layar kunci (secure.rs)
-client/branding/       Logo
-signaling/src/         Worker + Durable Object
-scripts/               write-defaults.mjs, publish-update.mjs
-docs/ROADMAP.md        Rencana fitur
-.github/workflows/     Build dan rilis
-```
 
 ## Lisensi
 

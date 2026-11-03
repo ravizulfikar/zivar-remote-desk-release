@@ -27,11 +27,6 @@
 
 ---
 
-```
-signaling/   Cloudflare Worker + Durable Object: 9-digit IDs, relays SDP/ICE, limits password attempts, TURN credentials
-client/      Tauri (Rust + WebView2): Host mode (being controlled) and Viewer mode (controlling)
-```
-
 ## Features
 
 **Connecting**
@@ -64,7 +59,7 @@ The Windows installer and the Android APK are built by GitHub Actions for every 
 - **Windows**: `ZivarRemoteDesk_<version>_x64-setup.exe`. The installer is not code-signed yet, so SmartScreen may warn on first run (More info, then Run anyway).
 - **Android**: `ZivarRemoteDesk_<version>_android.apk`. Allow installing from unknown sources. This is a debug build for testing and it cannot be installed over a release build signed with a different key.
 
-The server address and the access key are built into the app, so a fresh install connects at once: there is nothing to configure or type. The key is inside the downloadable file, so anyone who has the file can extract it and use your server and TURN allowance (not your computers, which stay protected by their ID and password). See [Self-hosting the server](#self-hosting-the-server-cloudflare-free).
+The server address and the access key are built into the app, so a fresh install connects at once: there is nothing to configure or type.
 
 ### Using it
 
@@ -144,129 +139,6 @@ Notes:
 - Video travels over UDP, which an HTTP proxy cannot carry. Behind a proxy the session therefore has to go through the TURN relay over TCP/TLS, and the proxy must allow `CONNECT` to the relay port. Cloudflare offers `turns:` on port 443, which most proxies allow. This part could not be tested against a real office proxy.
 - If Windows already has a proxy configured for the whole system, the app normally follows it and you may not need this setting.
 - Not covered by the proxy: opening links (Check for updates, zivar.my.id) in your browser; the browser uses its own settings.
-
-## Private web viewer
-
-A web page that controls your computers from any browser, for you only. Sign-in is by e-mail: **Cloudflare Access** sends a one-time code to an address you list, and nobody else can even load the page. The page is served by its own Worker (`web/`, name `zivar-web`), which is the only way in to the signaling server for browsers. The app key never reaches the browser.
-
-```
-browser --(Access: e-mail code)--> zivar-web --(service binding + WEB_KEY)--> zivar-signaling
-```
-
-What it can do: connect to a computer by ID and password (screen or terminal only), on phones too. What it does not do: act as a computer to be controlled, remember passwords (there is no protection for them in a browser), connect by local IP address (an https page cannot open `ws://`) or check for updates.
-
-Set it up once:
-
-1. **Shared secret** between the two Workers (same value in both). In PowerShell:
-
-   ```powershell
-   $key = node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   cd signaling; $key | npx wrangler secret put WEB_KEY
-   cd ../web;    $key | npx wrangler secret put WEB_KEY
-   ```
-
-2. **Cloudflare Access** (dashboard, free for up to 50 users):
-   - *Zero Trust*: choose a team name and the Free plan the first time. Under *Settings, Authentication* make sure **One-time PIN** is enabled.
-   - *Workers & Pages, zivar-web, Settings, Domains & Routes*: on the `workers.dev` row choose **Enable Cloudflare Access**, then **Manage Cloudflare Access**. In the policy, allow only your e-mail address(es) (Include, Emails) and remove any rule that allows everyone in your account or domain.
-   - Copy the application's **Audience (AUD) tag** (*Zero Trust, Access, Applications, zivar-web*) and your **team domain** (`https://<team>.cloudflareaccess.com`, under *Zero Trust, Settings*).
-
-3. Put them in `web/wrangler.jsonc` under `vars` and deploy:
-
-   ```jsonc
-   "vars": {
-     "TEAM_DOMAIN": "https://<team>.cloudflareaccess.com",
-     "POLICY_AUD": "<audience tag>",
-     "ALLOWED_EMAILS": "you@example.com"
-   }
-   ```
-
-   ```powershell
-   cd web; npm install; npm run deploy
-   ```
-
-4. Open `https://zivar-web.<your-account>.workers.dev`, enter your e-mail, type the code you receive, and connect.
-
-Until step 3 is done the Worker answers 503 to everything, so nothing is exposed by accident. The Worker also checks the Access token itself (signature, audience, expiry and the e-mail in `ALLOWED_EMAILS`), so even if Access were switched off by mistake nobody gets in. If you are refused although you signed in, run `npx wrangler tail` in `web/`: the reason is logged (`access denied: ...`).
-
-## Updates
-
-**About** has a **Check for updates** button, and the app also checks quietly when it starts (at most every 12 hours). A newer version is announced with a dot on the About tab; the download button opens the release file in your browser. The app does not install updates by itself yet (see the roadmap).
-
-The app reads the latest release of the public releases repository straight from GitHub, with the release notes from `CHANGELOG.id.md`; the download buttons open the installer or APK directly. Nothing has to be published by hand any more. Apps up to 0.10.x still read a manifest from the Worker; to let them see a new version, publish it once:
-
-```powershell
-node scripts/publish-update.mjs 0.12.0 "Short release notes"
-```
-
-## Self-hosting the server (Cloudflare, free)
-
-```powershell
-cd signaling
-npx wrangler login
-npx wrangler kv namespace create META            # put the returned id into wrangler.jsonc
-npx wrangler deploy                              # gives https://zivar-signaling.<account>.workers.dev
-```
-
-TURN (optional but recommended for office networks): create a TURN key in the Cloudflare dashboard (Realtime, then TURN), then:
-
-```powershell
-npx wrangler secret put TURN_KEY_ID
-npx wrangler secret put TURN_KEY_API_TOKEN
-npx wrangler secret put APP_KEY                  # optional: keeps other people from using your Worker
-```
-
-Check the relay: open `<worker-address>/health`. `{"ok":true,"turn":"ok"}` means TURN works (`missing` = secrets not set, `invalid:401` = wrong key).
-
-The server address and the key are baked into the app at build time by `scripts/write-defaults.mjs`: the address from `ZIVAR_SERVER` (defaulting to this project's Worker) and the key from the GitHub secret `APP_KEY`. They are not shown in the app. To replace the key: set the new value on the Worker (`npx wrangler secret put APP_KEY`) and in GitHub (`gh secret set APP_KEY`), then release a new version. Older builds then stop connecting, and the app tells the user to install the newest version.
-
-> The key inside a distributed app can be extracted by anyone who has the file, and the downloads are public. With it someone could use your Worker and your TURN allowance (Cloudflare Realtime TURN is free up to a large monthly amount); keep an eye on the usage in the Cloudflare dashboard and replace the key if you see abuse. The computers themselves are protected by their ID and password, not by this key.
-
-## Security
-
-- The password is never sent (HMAC challenge, see above).
-- An ID is claimed with a secret token; no other device can take over the same ID.
-- Five wrong passwords lock that ID for 15 minutes for the sender's IP.
-- The input data channel only opens after authentication succeeds.
-- Saved passwords are encrypted with Windows DPAPI.
-
-## Known limitations
-
-- The host is Windows only. The viewer runs on Windows and Android.
-- The sign-in screen, lock screen and UAC prompts cannot be controlled yet (that needs a Windows Service).
-- Auto-start runs after you sign in to Windows, not at boot. The installer is not code-signed.
-- The sign-in screen after a restart, before anyone has signed in, cannot be controlled: the app is not running yet. A locked computer can, with the service installed (see above).
-- Android keeps saved passwords in the app's private storage only (no Keystore yet) and the APK is a debug build.
-- Password attempt counters live in the Durable Object's memory and reset if it restarts.
-- The proxy has no username/password support and has not been tested against a real office proxy and relay.
-
-More ideas, in order, are in [docs/ROADMAP.md](docs/ROADMAP.md).
-
-## Development
-
-```powershell
-# terminal 1: signaling server
-cd signaling; npm install; npm run dev          # http://127.0.0.1:8787
-npm test                                         # end-to-end signaling test (server must be running)
-
-# terminal 2: the app
-cd client; npm install; npm run tauri dev
-npm test                                         # unit tests (quality, history, update)
-```
-
-Releases: push a tag `vX.Y.Z`; `.github/workflows/release.yml` builds the Windows installer and the Android APK and publishes them. With the GitHub secret `RELEASES_TOKEN` (a fine-grained token with *Contents: read and write* on the public releases repository) they are published there; without it they stay in the private repository. The public repository needs one commit (for example a README) before the first release.
-
-## Project layout
-
-```
-client/src/            UI and logic (main.js, history.js, quality.js, update.js), bundled xterm.js in vendor/
-web/                   Private web viewer: Worker that serves the page and forwards to the signaling server (behind Cloudflare Access)
-client/src-tauri/      Rust: config, input injection, tray, proxy, local-network relay (lan.rs), terminal (term.rs), lock-screen service and helper (secure.rs)
-client/branding/       Logo
-signaling/src/         Worker + Durable Object
-scripts/               write-defaults.mjs, publish-update.mjs
-docs/ROADMAP.md        Planned features
-.github/workflows/     Build and release
-```
 
 ## License
 
