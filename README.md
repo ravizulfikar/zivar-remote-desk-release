@@ -5,8 +5,8 @@
 <h1 align="center">ZIVAR Remote Desk</h1>
 
 <p align="center">
-  Remote desktop with a 9-digit ID and a password. Video, mouse and keyboard travel peer to peer over WebRTC;<br>
-  a free Cloudflare Worker only introduces the two computers. Host for Windows, viewer for Windows and Android.
+  Control your computer from anywhere with just an ID and a password.<br>
+  Free remote desktop for Windows and Android.
 </p>
 
 <p align="center">
@@ -21,125 +21,84 @@
 <p align="center">
   <a href="https://github.com/ravizulfikar/zivar-remote-desk-release/releases/latest">Download</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
-  <a href="docs/ROADMAP.md">Roadmap</a> ·
   <a href="LICENSE">MIT License</a>
 </p>
 
 ---
 
+## What is ZIVAR Remote Desk?
+
+An app to see and control another computer from a distance, as if you were sitting in front of it. Useful for reaching your office or home computer from a laptop, another computer or an Android phone.
+
+There is no account to create. Every computer has a **9-digit ID** and a **password** that you choose. Whoever knows both can connect.
+
 ## Features
 
 **Connecting**
-- Connect with a **9-digit ID and a password**. The password is never sent: the host sends a nonce and the viewer answers with an HMAC-SHA256 over a PBKDF2 key (200,000 iterations).
-- **Permanent ID** (Windows): derived from the computer's identity (MachineGuid), so it stays the same after reinstalling the app. If it ever clashes with another computer it shifts once and stays permanent afterwards.
-- **Connection history**: every computer you connected to is kept with a name, favourite flag and last-used time. Tick *Remember password* and the next connection is one tap. Passwords are encrypted with Windows DPAPI.
-- **TURN relay** as a fallback when a direct connection is blocked (Cloudflare Realtime TURN).
-- **Local network (LAN)**: connect by IP address, without the internet. See [Local network](#local-network-lan).
-- **Locked computer and UAC** (optional Windows service): the lock screen and UAC prompts stay visible and controllable, including typing the Windows password. See [Locked computer](#locked-computer-and-uac).
-- **Terminal only**: open just a shell (PowerShell) on the other computer, no screen. See [Remote terminal](#remote-terminal).
-- **HTTP proxy** for networks that only reach the internet through a proxy (for example `10.15.3.20` port `80`). See [Using a proxy](#using-a-proxy).
+- **Permanent ID**: a computer's ID does not change, even after the app is reinstalled.
+- **Your password is never sent** to anyone when you connect.
+- **Connection history**: computers you have connected to are remembered with a name and a favourite flag. One tap reconnects, and the password can be remembered safely on Windows.
+- **Local network**: at the office or at home, connect with the computer's IP address, even without internet.
+- **Office networks with a proxy**: a proxy setting is built into the app.
 
-**During a session**
-- **Adaptive quality**: the host measures RTT, packet loss and bandwidth every 2 seconds and steps the picture down (8 Mbps 1080p30 down to 0.5 Mbps ~360p15) when the network is slow, and back up when it recovers. The viewer can pin High, Medium or Low and sees resolution, fps, bitrate and ping.
-- **"Being controlled" marker** (Windows): a red frame around the screen and an always-on-top badge with a **Disconnect** button. Both are excluded from the capture, so the viewer does not see them.
-- **Manual approval** (optional): ask before every connection.
-- **Video codec and hardware acceleration**: Auto prefers H.264 and uses the graphics card's encoder when there is one. The codec and whether it runs on hardware or software are shown on the viewer. See [Video](#video-codec-and-hardware).
-- **Android viewer**: touchpad-style control (drag to move, tap to click, two-finger tap to right-click, two-finger drag to scroll, hold and drag), an on-screen keyboard and a floating, movable control button. **Pinch to zoom** the picture on the phone (only on the phone, the other computer is not affected).
+**While controlling**
+- **Smooth picture**: the quality adapts to your connection speed by itself. You can also pick High, Medium or Low.
+- **Terminal only**: open just a command line (PowerShell) on the other computer without seeing its screen. It is off by default and must be switched on by the computer's owner.
+- **Locked computer**: see and control a computer that is locked, including typing the Windows password and answering administrator permission (UAC) prompts. This needs a one-time administrator approval to install the extra component.
 
-**On the host computer**
-- **Runs in the background**: closing or minimizing the window hides it to the system tray and the ID stays online. Optionally starts with Windows, hidden in the tray. Only one copy can run. See [Running in the background](#running-in-the-background-windows).
-- **Home and access history**: the **Home** tab shows this computer's ID and a list of everyone who connected to it: time, IP address, route (Internet or LAN), screen or terminal, the result (connected, wrong password, refused, terminal not allowed) and how long the session lasted. The list is stored only on this computer and can be cleared. All settings are in the **Settings** tab.
-- **Check for updates and About**: shows the logo, name, version and https://zivar.my.id, and tells you when a newer version exists.
-- A start-up splash, light and dark themes that follow the system, and a phone layout with a bottom tab bar.
+**On the computer being controlled**
+- **A clear sign**: while it is being controlled, a red frame appears around the screen with an always-on-top **Disconnect** button.
+- **Ask first**: an option to ask for permission every time someone connects.
+- **Home with an access history**: see who connected, when and for how long.
+- **Quietly in the background**: closing the window only hides it to an icon in the notification area, so the computer stays reachable. It can also start with Windows.
+
+**On Android**
+- **Touch control**: drag to move the cursor, tap to click, two-finger tap to right-click, two-finger drag to scroll, hold and drag to drag.
+- **Zoom**: pinch to enlarge the picture on your phone (this does not change the other computer's screen), plus an on-screen keyboard and a floating control button.
+
+**Also**
+- A notice when a new version is available, in the **About** menu.
+- Light and dark themes that follow your device.
 
 ## Download and install
 
-The Windows installer and the Android APK are built by GitHub Actions for every `v*` tag of the private source repository and published in the public repository [zivar-remote-desk-release](https://github.com/ravizulfikar/zivar-remote-desk-release/releases) (no GitHub login needed to download).
+Get the latest version from the [Releases](https://github.com/ravizulfikar/zivar-remote-desk-release/releases/latest) page:
 
-- **Windows**: `ZivarRemoteDesk_<version>_x64-setup.exe`. The installer is not code-signed yet, so SmartScreen may warn on first run (More info, then Run anyway).
-- **Android**: `ZivarRemoteDesk_<version>_android.apk`. Allow installing from unknown sources. This is a debug build for testing and it cannot be installed over a release build signed with a different key.
+- **Windows**: `ZivarRemoteDesk_<version>_x64-setup.exe`. The installer is not officially signed yet, so Windows SmartScreen may warn on first run: choose **More info**, then **Run anyway**.
+- **Android**: `ZivarRemoteDesk_<version>_android.apk`. Allow installing from unknown sources. This is a test version (not from the Play Store).
 
-The server address and the access key are built into the app, so a fresh install connects at once: there is nothing to configure or type.
+The computer being controlled must run Windows. Android is only for controlling other computers.
 
-### Using it
+## Getting started
 
-1. On the computer to be controlled: tab **Settings**, set a password (at least 8 characters) and switch on **Allow remote access**. The computer's ID is shown on **Home**.
-2. On the other device: tab **Connect**, enter the ID and the password, tap **Connect**.
+**1. Prepare the computer you want to control (Windows)**
+1. Install and open the app.
+2. Open **Settings**, type a password (at least 8 characters) and save it.
+3. Switch on **Allow remote access**.
+4. Note the **ID** shown on **Home**.
 
-### Android controls
+**2. Connect from another device**
+1. Install and open the app (Windows or Android).
+2. Open **Connect** and type the other computer's ID and password.
+3. Pick **Screen view** or **Terminal only**, then press **Connect**.
 
-One finger drags the cursor, a tap is a left click, a two-finger tap is a right click, two fingers scroll, and hold-then-drag drags. The round floating button (movable) opens connection info, **Quality** (Auto / High / Medium / Low), **Keyboard** and **Disconnect**. Android is a viewer only; it cannot be controlled.
+The computer you connect to must be switched on and online (or on the same network as you for a local connection).
 
-## Local network (LAN)
+## Tips
 
-In **Settings**, the **Local network (LAN)** card: switch on *Allow direct connections from the local network*. The card then lists this computer's IP addresses. From another computer on the same network, type the address (for example `192.168.1.20`) instead of an ID in **Connect**.
+- **Local connection**: switch it on in **Settings**, **Local network**. The app shows the computer's IP address. Windows may ask for firewall permission; allow it on private networks.
+- **Locked computer**: install the extra component in **Settings**, **Lock screen** (needs administrator approval once). After updating the app, press **Update service** in the same place.
+- **Office computer behind a proxy**: enter the address and port in **Settings**, **Proxy**.
+- **Stay reachable**: leave **Keep running in the notification area** on so the computer stays reachable after its window is closed. To quit completely, right-click its icon and choose **Exit**.
 
-- No internet is needed. The password check, encryption and video are the same as over the internet.
-- A small relay inside the app listens on port **21118**. Windows may show a firewall prompt the first time; allow it on private networks.
-- The viewer learns the computer's ID from the connection and saves it in the history together with the local address. Next time it tries the local address first and falls back to the ID over the internet if nothing answers.
-- Wrong passwords are limited the same way as on the server: five failures lock that address for 15 minutes.
+## Using it safely
 
-## Remote terminal
-
-Switch on *Allow terminal access* in **Security** on the computer to be reached. In **Connect**, pick **Terminal only** next to the ID or IP address. You get a terminal (PowerShell, or cmd if it is missing) running as the user who started the app; the screen is not shared and nothing is captured.
-
-- It works over the internet and the local network, and on Android (with a key bar for Esc, Tab, Ctrl and the arrow keys).
-- The terminal is as powerful as full control of the computer. It is off by default and the password is always required. With manual approval on, the owner is asked first.
-- Typing `exit` ends the session on both sides. The shell is closed when the viewer disconnects.
-
-## Locked computer and UAC
-
-A normal program cannot see or type on the Windows lock screen or on UAC prompts, because Windows shows them on a separate, protected desktop. To reach them, install the small Windows service:
-
-1. In **Settings**, the **Lock screen** card, press **Install service**.
-2. Confirm the Windows administrator prompt (UAC). This is needed once.
-
-From then on, when the computer is locked or a UAC prompt appears during a remote session, the viewer keeps showing the screen and the mouse and keyboard keep working, so you can type the Windows password remotely. When the computer is unlocked the normal, faster picture comes back.
-
-How it works: the service (Windows account SYSTEM) keeps a helper running in the signed-in session. The helper follows whichever desktop currently receives input, sends it as JPEG pictures and injects mouse and keyboard input there. The app switches the video to those pictures while the protected desktop is active.
-
-Good to know:
-
-- The picture of the protected desktop is JPEG, around 10 frames per second, so it is less smooth than the normal picture. Right after locking, the picture can be black for a second.
-- It covers a computer that is locked **while you are still signed in** (the app keeps running). The sign-in screen after a restart, when nobody has signed in yet, is not covered.
-- After the computer was locked, Windows' screen capture inside the app's web engine can stay unavailable for a while. The session then simply continues on the service's pictures and returns to the normal picture when capture works again. Without the service, a new session can fail to start in that period; the app retries a few times.
-- The service runs from its own copy in `Program Files` (a place ordinary users cannot write to). After updating the app, press **Update service** on the same card so the two versions match. **Remove service** uninstalls it; do this before uninstalling the app.
-- Anyone who knows the access ID and password can type the Windows password remotely. Keep the access password private. Programs of the signed-in Windows user can also talk to the helper, as they can already control the normal desktop.
-
-## Video: codec and hardware
-
-In **Settings**, the **Video** card:
-
-- **Video codec**: *Auto* (H.264 if available, then VP9, VP8, AV1), or a fixed choice. The change applies to the next session.
-- **Hardware acceleration**: *Auto* leaves the choice to the browser engine, *Always use GPU* asks it to use the GPU even when it is on its block list, *Off* forces software encoding and decoding. This needs a restart of the app.
-
-The viewer shows the codec actually used, for example `H.264, hardware`, so you can see what the setting did.
-
-## Running in the background (Windows)
-
-In **Settings**, the **Background** card:
-
-- **Keep running in the system tray** (on by default): while remote access is on, pressing X or minimizing only hides the window. The ID stays online. Click the tray icon to reopen; right-click and choose **Exit** to really quit. The icon's tooltip shows the ID and status. With remote access off, closing the window quits as usual.
-- **Start with Windows** (optional): writes a per-user `HKCU\...\Run` entry; the app starts hidden in the tray after you sign in. It works once you are signed in; before that (the sign-in screen) the computer cannot be controlled. That needs a Windows Service, which is on the [roadmap](docs/ROADMAP.md).
-- Starting the app a second time does not start a second host; the running window is brought forward.
-- With manual approval on, the window pops up when someone asks for permission.
-
-## Using a proxy
-
-For a computer that reaches the internet only through an HTTP proxy, open **Settings**, the **Proxy** card:
-
-1. Switch on **Use HTTP proxy**.
-2. Enter the proxy address and port, for example `10.15.3.20` and `80`.
-3. Press **Save and restart**. The app restarts to apply it.
-
-Notes:
-
-- The proxy is passed to the app's web engine, so everything the app does online uses it: the connection to the signaling server, the TURN relay credentials and the update check.
-- Only a plain HTTP proxy without a login is supported. A proxy that asks for a username and password is not.
-- Video travels over UDP, which an HTTP proxy cannot carry. Behind a proxy the session therefore has to go through the TURN relay over TCP/TLS, and the proxy must allow `CONNECT` to the relay port. Cloudflare offers `turns:` on port 443, which most proxies allow. This part could not be tested against a real office proxy.
-- If Windows already has a proxy configured for the whole system, the app normally follows it and you may not need this setting.
-- Not covered by the proxy: opening links (Check for updates, zivar.my.id) in your browser; the browser uses its own settings.
+- Use a long, unique password and do not share it with anyone you do not trust.
+- Switch on **Ask for manual approval** if other people use the computer.
+- Switch on **Allow terminal access** only when you need it.
+- Look at the **Access history** on Home from time to time.
+- A red frame around the screen means the computer is being controlled. **Disconnect** ends the session at any time.
 
 ## License
 
-ZIVAR's own code is released under the [MIT License](LICENSE). The app is built on third-party components, each under its own license; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Released under the [MIT License](LICENSE). The app uses some third-party components; they are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
