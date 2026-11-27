@@ -37,7 +37,7 @@ Tidak ada akun yang perlu dibuat. Setiap komputer punya **ID 9 digit** dan **kat
 **Menyambung**
 - **ID tetap**: ID komputer tidak berubah, bahkan setelah aplikasi dipasang ulang.
 - **Kata sandi Anda tidak pernah dikirim** ke siapa pun saat menyambung.
-- **Riwayat koneksi**: komputer yang pernah Anda hubungi tersimpan lengkap dengan nama dan favorit. Satu ketukan untuk tersambung lagi, dan kata sandinya dapat diingat dengan aman di Windows.
+- **Riwayat koneksi**: sesi layar dan terminal punya daftar, nama, dan favorit masing-masing. Satu ketukan untuk tersambung lagi, dan kata sandinya dapat diingat dengan aman di Windows.
 - **Jaringan lokal**: di kantor atau rumah, sambungkan memakai alamat IP komputer, bahkan tanpa internet.
 - **Jaringan kantor dengan proxy**: pengaturan proxy tersedia di dalam aplikasi.
 
@@ -73,22 +73,22 @@ Komputer yang dikontrol harus Windows. Android hanya untuk mengontrol komputer l
 
 **1. Siapkan komputer yang ingin dikontrol (Windows)**
 1. Pasang dan buka aplikasi.
-2. Buka **Pengaturan**, ketik kata sandi (minimal 8 karakter), lalu simpan.
+2. Dari **Beranda**, pilih **Siapkan akses**, ketik kata sandi (minimal 8 karakter), lalu simpan.
 3. Nyalakan **Izinkan akses jarak jauh**.
 4. Catat **ID** yang tampil di **Beranda**.
 
 **2. Sambungkan dari perangkat lain**
 1. Pasang dan buka aplikasi (Windows atau Android).
 2. Buka **Hubungkan**, ketik ID dan kata sandi komputer tujuan.
-3. Pilih **Tampilan layar** atau **Terminal saja**, lalu tekan **Hubungkan**.
+3. Pilih **Layar** atau **Terminal**, lalu tekan **Hubungkan**.
 
 Komputer tujuan harus menyala dan terhubung ke internet (atau satu jaringan dengan Anda untuk sambungan lokal).
 
 ## Tips
 
-- **Sambungan lokal**: nyalakan di **Pengaturan**, bagian **Jaringan lokal**. Aplikasi menampilkan alamat IP komputer. Windows mungkin meminta izin firewall; izinkan pada jaringan privat.
-- **Komputer terkunci**: pasang komponen tambahannya di **Pengaturan**, bagian **Layar kunci** (butuh persetujuan administrator satu kali). Setelah memperbarui aplikasi, tekan **Perbarui layanan** di tempat yang sama.
-- **Komputer kantor dengan proxy**: isi alamat dan port di **Pengaturan**, bagian **Proxy**.
+- **Sambungan lokal**: nyalakan di **Pengaturan → Koneksi → Jaringan lokal**. Aplikasi menampilkan alamat IP komputer. Jika Windows meminta izin firewall, pilih jaringan privat.
+- **Komputer terkunci**: pasang komponen tambahannya di **Pengaturan → Akses → Layar kunci**. Pemasangan memerlukan persetujuan administrator. Setelah memperbarui aplikasi, tekan **Perbarui layanan** di tempat yang sama.
+- **Komputer kantor dengan proxy**: isi alamat dan port di **Pengaturan → Koneksi → Proxy**.
 - **Tetap aktif**: biarkan **Tetap berjalan di area notifikasi** menyala agar komputer tetap bisa dihubungi setelah jendelanya ditutup. Untuk keluar sepenuhnya, klik kanan ikonnya lalu pilih **Keluar**.
 
 ## Pakai dengan aman

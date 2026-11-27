@@ -4,6 +4,15 @@
 
 All notable changes to ZIVAR Remote Desk are recorded in this file.
 
+## [0.13.0] - 2026-11-27
+
+### Changed
+
+- Home shows the device ID, status and a shortcut to set up remote access. Connect puts the form and history side by side on desktop. Settings are grouped into Access, Connection and App.
+- Updated the interface, session controls and app icons for Windows and Android. Light and dark themes still follow the system.
+- Screen and terminal history now use separate lists, including for the same ID. Older entries follow their last saved mode.
+- Automatic video quality responds faster to jitter and encoder load and reduces resolution to preserve motion. High supports up to 1080p60 when the devices and connection can keep up.
+
 ## [0.12.1] - 2026-11-20
 
 ### Fixed

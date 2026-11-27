@@ -37,7 +37,7 @@ There is no account to create. Every computer has a **9-digit ID** and a **passw
 **Connecting**
 - **Permanent ID**: a computer's ID does not change, even after the app is reinstalled.
 - **Your password is never sent** to anyone when you connect.
-- **Connection history**: computers you have connected to are remembered with a name and a favourite flag. One tap reconnects, and the password can be remembered safely on Windows.
+- **Connection history**: screen and terminal sessions have separate lists with their own names and favourites. One tap reconnects, and the password can be remembered safely on Windows.
 - **Local network**: at the office or at home, connect with the computer's IP address, even without internet.
 - **Office networks with a proxy**: a proxy setting is built into the app.
 
@@ -73,22 +73,22 @@ The computer being controlled must run Windows. Android is only for controlling 
 
 **1. Prepare the computer you want to control (Windows)**
 1. Install and open the app.
-2. Open **Settings**, type a password (at least 8 characters) and save it.
+2. From **Home**, choose **Set up access**, type a password (at least 8 characters) and save it.
 3. Switch on **Allow remote access**.
 4. Note the **ID** shown on **Home**.
 
 **2. Connect from another device**
 1. Install and open the app (Windows or Android).
 2. Open **Connect** and type the other computer's ID and password.
-3. Pick **Screen view** or **Terminal only**, then press **Connect**.
+3. Pick **Screen** or **Terminal**, then press **Connect**.
 
 The computer you connect to must be switched on and online (or on the same network as you for a local connection).
 
 ## Tips
 
-- **Local connection**: switch it on in **Settings**, **Local network**. The app shows the computer's IP address. Windows may ask for firewall permission; allow it on private networks.
-- **Locked computer**: install the extra component in **Settings**, **Lock screen** (needs administrator approval once). After updating the app, press **Update service** in the same place.
-- **Office computer behind a proxy**: enter the address and port in **Settings**, **Proxy**.
+- **Local connection**: switch it on in **Settings → Connection → Local network**. The app shows the computer's IP address. If Windows asks for firewall permission, allow it on private networks.
+- **Locked computer**: install the extra component in **Settings → Access → Lock screen**. Installation needs administrator approval. After updating the app, press **Update service** in the same place.
+- **Office computer behind a proxy**: enter the address and port in **Settings → Connection → Proxy**.
 - **Stay reachable**: leave **Keep running in the notification area** on so the computer stays reachable after its window is closed. To quit completely, right-click its icon and choose **Exit**.
 
 ## Using it safely

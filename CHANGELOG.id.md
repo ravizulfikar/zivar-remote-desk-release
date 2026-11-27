@@ -4,6 +4,15 @@
 
 Semua perubahan penting pada ZIVAR Remote Desk dicatat di berkas ini.
 
+## [0.13.0] - 2026-11-27
+
+### Diubah
+
+- Beranda menampilkan status, ID, dan pintasan pengaturan akses. Halaman Hubungkan menempatkan formulir dan riwayat berdampingan di desktop. Pengaturan dikelompokkan menjadi Akses, Koneksi, dan Aplikasi.
+- Tampilan, ikon aplikasi Windows dan Android, serta kontrol sesi diperbarui. Mode terang dan gelap tetap mengikuti sistem.
+- Riwayat Layar dan Terminal terpisah, termasuk untuk ID yang sama. Riwayat lama mengikuti mode terakhir yang tersimpan.
+- Mode video otomatis merespons jitter dan beban encoder lebih cepat serta mengurangi resolusi untuk menjaga kelancaran. Profil Tinggi mendukung hingga 1080p60 jika perangkat dan koneksi mampu.
+
 ## [0.12.1] - 2026-11-20
 
 ### Diperbaiki
