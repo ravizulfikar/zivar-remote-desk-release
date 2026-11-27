@@ -4,6 +4,16 @@
 
 All notable changes to ZIVAR Remote Desk are recorded in this file.
 
+## [0.12.1] - 2026-11-20
+
+### Fixed
+
+- **The signaling server no longer uses up the Cloudflare free tier while hosts sit idle.** Every host that was online kept its Durable Object awake around the clock, so a single computer left online used close to the whole daily Durable Objects duration allowance even with no remote sessions. The Hub now uses the WebSocket Hibernation API: idle connections stay open but are not billed, and the object only wakes for signaling messages. Login lockouts (5 wrong passwords) are kept in storage so they survive hibernation.
+
+### Notes
+
+- Only the signaling Worker changed. Deploy it again (`cd signaling`, `npm run deploy`) to get the fix; the apps behave as in 0.12.0.
+
 ## [0.12.0] - 2026-11-04
 
 ### Changed

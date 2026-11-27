@@ -4,6 +4,16 @@
 
 Semua perubahan penting pada ZIVAR Remote Desk dicatat di berkas ini.
 
+## [0.12.1] - 2026-11-20
+
+### Diperbaiki
+
+- **Server signaling tidak lagi menghabiskan jatah gratis Cloudflare saat host hanya diam online.** Setiap host yang online membuat Durable Object-nya aktif sepanjang hari, sehingga satu komputer yang dibiarkan online sudah memakai hampir seluruh jatah harian durasi Durable Objects meski tidak ada sesi remote. Hub sekarang memakai WebSocket Hibernation API: koneksi yang diam tetap terbuka tetapi tidak ditagih, dan objek hanya aktif saat ada pesan signaling. Penguncian login (5 kali salah password) disimpan di storage sehingga tetap berlaku setelah hibernasi.
+
+### Catatan
+
+- Hanya Worker signaling yang berubah. Deploy ulang (`cd signaling`, `npm run deploy`) untuk mendapatkan perbaikan ini; aplikasi berperilaku sama seperti 0.12.0.
+
 ## [0.12.0] - 2026-11-04
 
 ### Diubah
